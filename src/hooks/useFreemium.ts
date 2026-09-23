@@ -1,12 +1,15 @@
-﻿import { useState, useEffect } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useState, useEffect } from "react";
+import { useUserStore } from "@/lib/store/useUserStore";
 
 const MAX_FREE_INTERACTIONS = 5;
 
 export function useFreemium() {
-  const user = useAuthStore((state) => state.user);
-  const isTrialActive = useAuthStore((state) => state.isTrialActive);
-  const subscriptionTier = useAuthStore((state) => state.subscriptionTier);
+  const user = useUserStore((state) => state.user);
+  const userDoc = useUserStore((state) => state.userDoc);
+  const isTrialExpired = useUserStore((state) => state.isTrialExpired);
+  
+  const subscriptionTier = userDoc?.subscriptionTier || "none";
+  const isTrialActive = !isTrialExpired;
   
   const [freeInteractions, setFreeInteractions] = useState(0);
 
@@ -26,8 +29,8 @@ export function useFreemium() {
   };
 
   const canInteract = () => {
-    if (subscriptionTier !== "none") return true;
-    if (user && isTrialActive) return true;
+    if (subscriptionTier !== "none" && subscriptionTier !== "trial" && subscriptionTier !== "freemium") return true;
+    if (user && subscriptionTier === "trial" && isTrialActive) return true;
     if (!user && freeInteractions < MAX_FREE_INTERACTIONS) return true;
     return false;
   };

@@ -20,7 +20,9 @@ const config: Config = {
         },
         cyan: {
           glowing: "rgba(0, 255, 255, 0.6)",
-        }
+        },
+        background: "#050505",
+        foreground: "#F3E5AB", // Light gold for text
       },
       fontFamily: {
         cinzel: ["var(--font-cinzel)", "serif"],

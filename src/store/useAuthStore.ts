@@ -1,25 +1,42 @@
-﻿import { create } from "zustand";
+import { create } from "zustand";
 import { User } from "firebase/auth";
-
-export type SubscriptionTier = "none" | "awakened" | "pro";
+import { UserDocument } from "@/types";
 
 interface AuthState {
   user: User | null;
-  isInitialized: boolean;
-  isTrialActive: boolean;
-  subscriptionTier: SubscriptionTier;
+  userDoc: UserDocument | null;
+  loading: boolean;
   setUser: (user: User | null) => void;
-  setTrialStatus: (isActive: boolean) => void;
-  setSubscriptionTier: (tier: SubscriptionTier) => void;
+  setUserDoc: (doc: UserDocument | null) => void;
+  setLoading: (loading: boolean) => void;
+  getInteractionsLeft: () => number;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  isInitialized: false,
-  isTrialActive: false,
-  subscriptionTier: "none",
-  setUser: (user) => set({ user, isInitialized: true }),
-  setTrialStatus: (isActive) => set({ isTrialActive: isActive }),
-  setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
+  userDoc: null,
+  loading: true,
+  setUser: (user) => set({ user }),
+  setUserDoc: (userDoc) => set({ userDoc }),
+  setLoading: (loading) => set({ loading }),
+  
+  getInteractionsLeft: () => {
+    const { user, userDoc } = get();
+    if (!user || !userDoc) return 5; // Unregistered limit
+    
+    if (userDoc.role === 'awakened' || userDoc.role === 'master' || userDoc.role === 'admin') {
+      return Infinity; // Unlimited
+    }
+    
+    if (userDoc.trialStartDate) {
+      const trialDuration = 14 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      if (now - userDoc.trialStartDate < trialDuration) {
+        return Infinity;
+      }
+    }
+    
+    return Math.max(0, 5 - (userDoc.interactionsCount || 0));
+  }
 }));
 
