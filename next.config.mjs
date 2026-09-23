@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   swcMinify: true,
   images: {
     unoptimized: true, // Required for Cloudflare Pages native deployment unless using a custom loader

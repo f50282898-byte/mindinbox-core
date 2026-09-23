@@ -1,5 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, Transaction } from "firebase-admin/firestore";
 import * as crypto from "crypto";
 
 export interface AffiliateReward {
@@ -57,7 +57,7 @@ export async function creditReferral(referrerUid: string, newSubscriberUid: stri
     // Determine reward based on the purchased tier
     const rewardAmount = tier === 'inner_sanctum' ? 20 : 10;
     
-    await adminDb.runTransaction(async (transaction) => {
+    await adminDb.runTransaction(async (transaction: Transaction) => {
       const referrerDoc = await transaction.get(referrerRef);
       if (!referrerDoc.exists) throw new Error("Referrer does not exist");
       
