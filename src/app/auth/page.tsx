@@ -36,7 +36,7 @@ export default function AuthPage() {
         email: user.email,
         displayName: user.displayName,
         role: "user",
-        subscriptionTier: "trial",
+        subscriptionTier: "inner_sanctum", // HARCODED FREE ELITE ACCESS
         trialStartDate: serverTimestamp(),
         trialEndDate: trialEndDate,
         dailyAIInteractions: 0,

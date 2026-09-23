@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
@@ -42,48 +41,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
     }
 
-    // Initialize Stripe (Works in Edge in recent versions)
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-      apiVersion: '2026-08-26.dahlia',
-      httpClient: Stripe.createFetchHttpClient(), // Crucial for Edge Runtime
-    });
+    // Completely bypass Stripe
+    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/sanctum?unlocked=true`;
 
-    // 4. Create a 24-hour 20% discount coupon
-    const coupon = await stripe.coupons.create({
-      percent_off: 20,
-      duration: 'once',
-      max_redemptions: 1,
-      redeem_by: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expires in 24h
-    });
-
-    // 5. Create the checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID_SANCTum || 'price_sanctum_placeholder',
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      discounts: [{
-        coupon: coupon.id,
-      }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/sanctum?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
-      client_reference_id: userId,
-      metadata: {
-        userId,
-        tier: 'inner_sanctum',
-        type: 'elite_invitation'
-      },
-      expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Session also expires in 24h
-    });
-
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: inviteUrl });
   } catch (err: any) {
     console.error('Invite API Error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
